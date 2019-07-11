@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="javascripts/jquery.min.js"></script>
+    <script src="javascripts/kendo.web.min.js"></script>
+    <link href="stylesheets/kendo.common.min.css" rel="stylesheet"/>
+    <link href="stylesheets/kendo.blueopal.min.css" rel="stylesheet"/>
+    <style>
+        th {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<div style='padding-bottom: 10px;'>
+    Select the Data Set you would like to sample:
+    <input id="dataset" style="width: 400px;"/>
+    Data file type:
+    <input id='filetype' style="..."/>
+    <button class="k-button" id="get">Download Data Set</button>
+</div>
+<div>
+    <div style="float: left">Query Url:&nbsp;&nbsp;</div><input id="query" readonly="true" style="width: 90%"></input>
+</div>
+<div id="example" class="k-content">
+<div style="height: 500px;">
+    <div id="grid" style="height: 500px;"></div>
+</div>
+<script>
+var baseUrl = "http://www.fema.gov/api/open/v1/"
+var dataType = "jsonp";
+$("#filetype").kendoDropDownList({
+    dataTextField: "text",
+    dataValueField: "value",
+    dataSource: [
+        { text: "CSV", value: "1" },
+        { text: "JSON", value: "3" }
+    ],
+    filter: "contains",
+    suggest: true,
+    index: 1
+});
+var fileType = $("#filetype").data("kendoDropDownList");
+
+
+$("#get").click(function () {
+    var url = baseUrl + $("#dataset").val() + '.' + fileType.text().toLowerCase();
+    window.open(url, 'Download');
+});
+
+var dataSetDS = new kendo.data.DataSource({
+    type: "odata",
+    transport: {
+        read: {
+            url: baseUrl + 'OpenFemaDataSets',
+            dataType: dataType
+        }
+    },
+    schema: {
+        model: {
+            id: "_id",
+            fields: {
+                _id: { type: "string" },
+                name: { type: "string" },
+                title: { type: "string" },
+                description: { type: "string" },
+                UseInstructions: { type: "string" },
+                CompleteDataUrl: { type: "string" },
+                DataSetEndPoint: { type: "string" },
+                Fields: { type: "string" },
+                MetaDataUrl: { type: "string" },
+                SampleUrl: { type: "string" },
+                LastUpdated: { type: "date" }
+            }
+        },
+        data: "OpenFemaDataSets",
+        total: function (response) {
+            return response.metadata.count;
+        }
+    },
+    // pageSize: 20,
+    serverPaging: true,
+    serverFiltering: true,
+    serverSorting: true
+});
+
+var dataSetFieldsDS = new kendo.data.DataSource({
+    type: "odata",
+    transport: {
+        read: {
+            url: baseUrl + 'OpenFemaDataSetFields',
+            dataType: dataType,
+            cache: true
+        }
+    },
+    sort: { field: "sortOrder", dir: "asc" },
+    change: function (e) {
+        if (this.data().length > 0) {
+            buildGrid($("#dataset").val());
+        }
+    },
+    schema: {
+        model: {
+            id: "_id",
+            fields: {
+                _id: { type: "string" },
+                openFemaDataSet: { type: "string" },
+                name: { type: "string" },
+                title: { type: "string" },
+                description: { type: "string" },
+                type: { type: "string" },
+                sortOrder: { type: "number"}
+            }
+        },
+        data: "OpenFemaDataSetFields",
+        total: function (response) {
+            return response.metadata.count;
+        }
+    },
+    //pageSize: 20,
+    serverPaging: false,
+    serverFiltering: true,
+    serverSorting: true
+});
+
+var dropDown, grid;
+$(document).ready(function () {
+
+
+    //create DropDownList from input HTML element
+    dropDown = $("#dataset").kendoDropDownList({
+        dataTextField: "title",
+        dataValueField: "name",
+        dataSource: dataSetDS,
+        index: 0,
+        dataBound: onCascade
+    });
+
+    function onChange() {
+        //url = baseUrl + $("#dataset").val();
+        var grid = $("#grid").data("kendoGrid");
+        if (grid !== undefined) {
+            grid.destroy();
+            grid.wrapper.empty();
+        }
+        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        //dataSetFieldsDS.sort({ field: "sortOrder", dir: "asc" });
+        //dataSetFieldsDS.read();
+        //buildGrid($("#dataset").val());
+    }
+
+    function onCascade() {
+        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        //dataSetFieldsDS.sort({ field: "sortOrder", dir: "asc" });
+        //dataSetFieldsDS.read();
+        dropDown.unbind("dataBound", onCascade);
+        dropDown.bind("change", onChange);
+    }
+});
+function buildGrid(dataset) {
+    var fieldsData = dataSetFieldsDS.data();
+    if (fieldsData.length > 0) {
+        var schemaFields = {};
+        var columns = [];
+        for (var i = 0; i < fieldsData.length; i++) {
+            schemaFields[fieldsData[i].name] = { type: fieldsData[i].type};
+            var column = {
+                field: fieldsData[i].name,
+                title: fieldsData[i].title};
+            if (fieldsData[i].Type == 'date') {
+                column.format = '{0:MM/dd/yyyy}';
+            }
+            columns.push(column);
+        }
+        var model = { fields: schemaFields  };
+    }
+
+    grid = $("#grid").kendoGrid({
+        dataSource: {
+            type: "odata",
+            transport: {
+                read: {
+                    url: baseUrl + dataset,
+                    dataType: dataType,
+                    cache: true
+                }
+            },
+            schema: {
+                id: "_id",
+                model: model,
+                data: dataset,
+                total: function (response) {
+                    return response.metadata.count;
+                },
+                        parse: function(response) {
+                            $("#query").val(decodeURIComponent(response.metadata.url));
+                            return response;
+                        }
+            },
+            //pageSize: 20,
+            serverPaging: true,
+            serverFiltering: true,
+            serverSorting: true
+        },
+        height: 430,
+        filterable: {
+            extra: true//,
+//            operators: {
+//                string: {
+//                    eq: "Is equal to",
+//                    neq: "Is not equal to"
+//                }
+//            }
+        },
+        resizable: true,
+        navigatable: true,
+        sortable: true,
+        pageable: {
+            pageSize: 10,
+            pageSizes: [10, 20, 50, 100, 500, 1000]
+        },
+        scrollable: true,
+        dataBound: function (e) {
+            if (e.sender.dataSource.view().length == 0) {
+                //insert empty row
+                var colspan = $('.k-grid-header table thead tr th').length;
+                var emptyRow = "<tr>";
+                for (var i=0; i<colspan; i++){
+                    emptyRow += '<td></td>';
+                }
+                emptyRow += "</tr>";
+                this.tbody.html(emptyRow);
+
+                //workarounds for IE lt 9
+                //this.table.width(800);
+                //$(".k-grid-content").height(2 * kendo.support.scrollbar());
+            }
+            var content = $(".k-grid-content");
+//            if (e.sender.dataSource.sort() && e.sender.dataSource.sort().length > 0) {
+//                console.log(content.scrollLeft());
+//                console.log(content[0].clientWidth);
+//                console.log($('.k-grid-header table thead tr th[data-field="' + e.sender.dataSource.sort()[0].field + '"]')[0].offsetLeft);
+//                console.log($('.k-grid-header table thead tr th[data-field="' + e.sender.dataSource.sort()[0].field + '"]')[0].offsetLeft);
+//            }
+            var rows = $('#grid tr');
+            var columnWidths = [];
+            for (var cl = 0; cl < grid.data("kendoGrid").columns.length; cl++) {
+                columnWidths[cl] = 0;
+            }
+            rows.each(function () {
+                var columns = $(this.cells);
+
+                for (var i = 0; i < columns.length; i++) {
+                    var cell = $(columns[i]);
+                    var len = cell.text().length * 10;
+                    if (len > 500) {
+                        len = 500;
+                    }
+                    if (len < 30){len = 30;}
+                    if (len > columnWidths[i]) {
+                        columnWidths[i] = len;
+                    }
+                }
+            });
+            rows.each(function () {
+                var columns = $(this.cells);
+
+                for (var i = 0; i < columns.length; i++) {
+                    var cell = $(columns[i]);
+                    var len = cell.text().length * 10;
+                    cell.width(columnWidths[i]);
+                }
+            });
+            if (e.sender.dataSource.sort() && e.sender.dataSource.sort().length > 0) {
+                //e.sender.hideColumn(e.sender.dataSource.sort()[0].field);
+                //e.sender.showColumn(e.sender.dataSource.sort()[0].field);
+                //console.log(content.scrollLeft());
+                //console.log(content[0].clientWidth);
+                //console.log($('.k-grid-header table thead tr th[data-field="' + e.sender.dataSource.sort()[0].field + '"]')[0].offsetLeft);
+                content.scrollLeft($('.k-grid-header table thead tr th[data-field="' + e.sender.dataSource.sort()[0].field + '"]')[0].offsetLeft);
+            }
+        },
+        columns: columns
+    });
+}
+
+</script>
+</div>
+
+
+</body>
+</html>

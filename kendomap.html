@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base href="http://jaalfaro.github.io/OpenFEMA-API-Samples/">
+    <style>html { font-size: 12px; font-family: Arial, Helvetica, sans-serif; }</style>
+    <title></title>
+    <link href="http://cdn.kendostatic.com/2014.2.1008/styles/kendo.common.min.css" rel="stylesheet" />
+    <link href="http://cdn.kendostatic.com/2014.2.1008/styles/kendo.default.min.css" rel="stylesheet" />
+    <link href="http://cdn.kendostatic.com/2014.2.1008/styles/kendo.dataviz.min.css" rel="stylesheet" />
+    <link href="http://cdn.kendostatic.com/2014.2.1008/styles/kendo.dataviz.default.min.css" rel="stylesheet" />
+    <script src="http://cdn.kendostatic.com/2014.2.1008/js/jquery.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.1008/js/angular.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.1008/js/kendo.all.min.js"></script>
+	<link rel="stylesheet" href="examples-offline.css">
+</head>
+<body>
+    <div id="example">
+    <div class="demo-section k-header" style="padding: 1em;">
+        <div id="map"></div>
+    </div>
+    <script>
+      var popup;
+        function createMap() {
+            $("#map").kendoMap({
+                center: [39.6924, -97.3370],
+                zoom: 4,
+                layers: [{
+                    type: "shape",
+                    dataSource: {
+                        type: "geojson",
+                        transport: {
+                            read: "us.geo.json"
+                        }
+                    },
+                    style: {
+                        stroke: {
+                            color: "#ccebc5"
+                        },
+                        fill: {
+                            color: "#b3cde3"
+                        }
+                    }
+                }],
+                click: onClick,
+                reset: onReset,
+                pan: onPan,
+                panEnd: onPanEnd,
+                shapeClick: onShapeClick,
+                shapeCreated: onShapeCreated,
+                shapeMouseEnter: onShapeMouseEnter,
+                shapeMouseLeave: onShapeMouseLeave,
+                zoomStart: onZoomStart,
+                zoomEnd: onZoomEnd
+            });
+	    popup = $("<div>Foo</div>")
+           .appendTo(document.body)
+           .kendoPopup()
+           .data("kendoPopup");
+        }
+
+        function onClick(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Click at :: {0}", e.location.toString()
+            //));
+        }
+
+        function onReset(e) {
+            //kendoConsole.log("Reset");
+        }
+
+        function onPan(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Pan to :: {0}", e.center.toString()
+            //));
+        }
+
+        function onPanEnd(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Pan ended at :: {0}", e.center.toString()
+            //));
+        }
+
+        function onShapeClick(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Shape click :: {0}", e.shape.dataItem.properties.name
+            //));
+        }
+
+        function onShapeCreated(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Shape created :: {0}", e.shape.dataItem.properties.name
+            //));
+        }
+
+        function onShapeMouseEnter(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Shape mouseEnter :: {0}", e.shape.dataItem.properties.name
+            //));
+//          	console.log(e.shape)
+         e.shape.options.set("fill.color", "#00FF00");
+         e.shape.options.set("tooltip", "Hi");
+				var oe = e.originalEvent;
+        var x = oe.pageX || oi.clientX;
+        var y = oe.pageY || oi.clientY;
+
+        var name = e.shape.dataItem.properties.name;
+        popup.element.html(name);
+
+        popup.open(x, y);
+        }
+
+        function onShapeMouseLeave(e) {
+            //kendoConsole.log(kendo.format(
+            //    "Shape mouseLeave :: {0}", e.shape.dataItem.properties.name
+            //));
+         e.shape.options.set("fill.color", "#b3cde3");
+        if (!$(e.originalEvent.relatedTarget).is(".k-popup, .k-animation-container")) {
+           popup.close();
+
+             //Necessary to stop the animations,
+             //will be fixed in future versions
+           popup.element.kendoStop(true, true);
+        }
+        }
+
+        function onZoomStart(e) {
+            //kendoConsole.log("Zoom start");
+        }
+
+        function onZoomEnd(e) {
+            //kendoConsole.log("Zoom end");
+        }
+
+        $(document).ready(createMap);
+    </script>
+    <!--<div class="box">-->
+    <!--    <h4>Console log</h4>-->
+    <!--    <div class="console"></div>-->
+    <!--</div>-->
+</div>
+
+
+</body>
+</html>
