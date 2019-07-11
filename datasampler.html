@@ -53,7 +53,7 @@ var dataSetDS = new kendo.data.DataSource({
     type: "odata",
     transport: {
         read: {
-            url: baseUrl + 'OpenFemaDataSets',
+            url: baseUrl + 'DataSets',
             dataType: dataType
         }
     },
@@ -71,10 +71,11 @@ var dataSetDS = new kendo.data.DataSource({
                 Fields: { type: "string" },
                 MetaDataUrl: { type: "string" },
                 SampleUrl: { type: "string" },
-                LastUpdated: { type: "date" }
+                LastUpdated: { type: "date" },
+                version: {type: "number"}
             }
         },
-        data: "OpenFemaDataSets",
+        data: "DataSets",
         total: function (response) {
             return response.metadata.count;
         }
