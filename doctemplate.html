@@ -97,6 +97,9 @@ var dataSetDS = new kendo.data.DataSource({
             dataType: dataType
         }
     },
+    sort: [{field: "title", dir: "asc"},
+        {field: "version", dir: "asc"}
+    ],
     schema: {
         model: {
             id: "_id",
@@ -190,7 +193,8 @@ $(document).ready(function () {
         dataValueField: "name",
         dataSource: dataSetDS,
         index: 0,
-        dataBound: onCascade
+        dataBound: onCascade,
+        template: '<span class=k-state-default>#: data.name# -V#: data.version #</span>'
     });
 
     function onChange() {
