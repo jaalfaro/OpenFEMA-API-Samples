@@ -57,6 +57,9 @@ var dataSetDS = new kendo.data.DataSource({
             dataType: dataType
         }
     },
+    sort: [{field: "title", dir: "asc"},
+        {field: "version", dir: "asc"}
+    ],
     schema: {
         model: {
             id: "_id",
@@ -132,7 +135,7 @@ $(document).ready(function () {
 
     //create DropDownList from input HTML element
     dropDown = $("#dataset").kendoDropDownList({
-        dataTextField: "nameVersion",
+        dataTextField: "#: data.name# -V#: data.version #",
         dataValueField: "name",
         dataSource: dataSetDS,
         index: 0,
