@@ -135,7 +135,7 @@ $(document).ready(function () {
 
     //create DropDownList from input HTML element
     dropDown = $("#dataset").kendoDropDownList({
-        dataTextField: "#: data.name# -V#: data.version #",
+        dataTextField: "name",
         dataValueField: "name",
         dataSource: dataSetDS,
         index: 0,
