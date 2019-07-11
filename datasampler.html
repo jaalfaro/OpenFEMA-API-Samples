@@ -111,7 +111,8 @@ var dataSetFieldsDS = new kendo.data.DataSource({
                 title: { type: "string" },
                 description: { type: "string" },
                 type: { type: "string" },
-                sortOrder: { type: "number"}
+                sortOrder: { type: "number"},
+                datasetVersion: {type: "number"}
             }
         },
         data: "OpenFemaDataSetFields",
@@ -135,7 +136,8 @@ $(document).ready(function () {
         dataValueField: "name",
         dataSource: dataSetDS,
         index: 0,
-        dataBound: onCascade
+        dataBound: onCascade,
+        template: '<span class=k-state-default>#: data.name# -V#: data.version #</span>'
     });
 
     function onChange() {
