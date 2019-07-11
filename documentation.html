@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenFEMA Dataset Documentation</title>
+    <script src="Scripts/jquery-1.9.1.min.js"></script>
+    <script src="Scripts/kendo.web.min.js"></script>
+    <link href="styles/kendo.common.min.css" rel="stylesheet"/>
+    <link href="styles/kendo.blueopal.min.css" rel="stylesheet"/>
+    <style>
+        th {
+            white-space: nowrap;
+        }
+
+        #fullName {
+            font-size: x-large;
+            font-weight: bold;
+        }
+
+        .heading {
+            font-size: large;
+            font-weight: bold;
+            padding-top: 10px;
+        }
+
+        .tableHeader {
+            background: #0000ff;
+            color: #ffffff;
+        }
+
+        .even {
+
+        }
+
+        .odd {
+            background: lightgray;
+        }
+
+        td {
+            padding-left: 5px;
+            padding-right: 5px;
+
+        }
+
+        .info {
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div style='padding-bottom: 10px;'>
+    Select the Data Set you would like to view documentation for:
+    <input id="dataset" style="width: 400px;"/>
+    <br/>
+    <br/>
+
+    <div id="fullName"></div>
+    <br/><br/>
+    <p id="purpose"></p>
+    <h2>Entity Name</h2>
+    <p id="entityName"><strong></strong></p>
+    <h2>Description</h2>
+    <p id="description"></p>
+    <h2>Version: </h2>
+    <p id="version"></p>
+    <h2>Program URL</h2>
+    <p id="landingPage"></p>
+    <h2>Contact</h2>
+    <p id="contact"></p>
+    <h2>API Endpoint</h2>
+    <p id="webService"></p>
+    <h2>Full Data</h2>
+        <table class="datatable sortable" id="fullDataTable" summary="This table contains a list of links to full downloads of the dataset data in specified formats.  Each row lists the format and the download link.">
+        </table>
+    <h2>Keywords</h2>
+    <p id="keyword"></p>
+    <h2>Data Fields</h2>
+    <table class="datatable sortable" id="fieldsTable" summary="This table contains a list of dataset fields and metadata about the fields.  Each row lists the field Name, Title, Type and Description.">
+    </table>
+</div>
+<script>
+    var baseUrl = "http://www.fema.gov/api/open/v1/";
+    // var baseUrl = "/api/open/v1/";
+    baseUrl = "http://ec2-18-223-105-176.us-east-2.compute.amazonaws.com:8000/api/open/v1/";
+var dataType = "json";
+var fileType = $("#filetype").data("kendoDropDownList");
+$("#get").click(function () {
+    var url = baseUrl + $("#dataset").val() + '?$format=' + fileType.text().toLowerCase();
+    window.open(url, 'Download');
+});
+
+var dataSetDS = new kendo.data.DataSource({
+    type: "odata",
+    transport: {
+        read: {
+            url: baseUrl + 'DataSets',
+            dataType: dataType
+        }
+    },
+    schema: {
+        model: {
+            id: "_id",
+            fields: {
+                _id: { type: "string" },
+                name: { type: "string" },
+                title: { type: "string" },
+                description: { type: "string" },
+                distribution: { type: "string" },
+                webService: { type: "string" },
+                dataDictionary: { type: "string" },
+                keyword: { type: "string" },
+                modified: { type: "date" },
+                publisher: { type: "string" },
+                mbox: { type: "string" },
+                accessLevel: { type: "string" },
+                landingPage: { type: "string" },
+                temporal: { type: "string" },
+                version: { type: "string"}
+            }
+        },
+        data: "DataSets",
+        sort: { field: "name", dir: "asc" },
+        total: function (response) {
+            return response.metadata.count;
+        },
+        parse: function (response) {
+            if (response.DataSets) {
+                var dataSets = response.DataSets;
+                var length = dataSets.length;
+                for (var i = 0; i < length; i++) {
+                    dataSets[i].distribution = JSON.stringify(dataSets[i].distribution);
+                }
+            }
+            return response;
+        }
+    },
+//    pageSize: 40,
+    serverPaging: false,
+    serverFiltering: true,
+    serverSorting: true
+});
+
+var dataSetFieldsDS = new kendo.data.DataSource({
+    type: "odata",
+    transport: {
+        read: {
+            url: baseUrl + 'DataSetFields',
+            dataType: dataType,
+            cache: true
+        }
+    },
+    sort: { field: "sortOrder", dir: "asc" },
+    change: function (e) {
+        if (this.data().length > 0) {
+            buildFieldsTable($("#dataset").data("kendoDropDownList").dataItem());
+        }
+    },
+    sort: { field: 'sortOrder', dir: 'asc'},
+    schema: {
+        model: {
+            id: "_id",
+            fields: {
+                _id: { type: "string" },
+                openFemaDataSet: { type: "string" },
+                name: { type: "string" },
+                title: { type: "string" },
+                description: { type: "string" },
+                type: { type: "string" },
+                sortOrder: { type: "number" }
+            }
+        },
+        data: "DataSetFields",
+        total: function (response) {
+            return response.metadata.count;
+        }
+    },
+    //pageSize: 20,
+    serverPaging: false,
+    serverFiltering: true,
+    serverSorting: true
+});
+
+var dropDown, grid;
+$(document).ready(function () {
+
+
+    //create DropDownList from input HTML element
+    dropDown = $("#dataset").kendoDropDownList({
+        dataTextField: "title",
+        dataValueField: "name",
+        dataSource: dataSetDS,
+        index: 0,
+        dataBound: onCascade
+    });
+
+    function onChange() {
+        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        buildDoc($("#dataset").data("kendoDropDownList").dataItem());
+    }
+
+    function onCascade() {
+        $("#fieldsTable").html("");
+        buildDoc($("#dataset").data("kendoDropDownList").dataItem());
+        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.read();
+        dropDown.unbind("dataBound", onCascade);
+        dropDown.bind("change", onChange);
+    }
+});
+function buildFieldsTable(dataItem) {
+    $("#fieldsTable").html("");
+    $("#fieldsTable").append('<thead><tr><th scope="col">Name</th><th scope="col">Title</th><th scope="col">Type</th><th class="ui-table-deactivate" scope="col">Description</th></tr></thead>');
+    $("#fieldsTable").append('<tbody></tbody>');
+    var fieldsData = dataSetFieldsDS.data();
+    if (fieldsData.length > 0) {
+        for (var i = 0; i < fieldsData.length; i++) {
+            if (i % 2 !== 0) {
+                $("#fieldsTable > tbody").append('<tr class="odd"><td>' + fieldsData[i].name + '</td><td>' + fieldsData[i].title + '</td><td>' + fieldsData[i].type + '</td><td>' + fieldsData[i].description + '</td></tr>');
+            }
+            else {
+                $("#fieldsTable > tbody").append('<tr><td>' + fieldsData[i].name + '</td><td>' + fieldsData[i].title + '</td><td>' + fieldsData[i].type + '</td><td>' + fieldsData[i].description + '</td></tr>');
+            }
+        }
+    }
+}
+function buildDoc(dataItem) {
+    document.title = dataItem.title;
+    $("#fullName").text(dataItem.title);
+    $("#purpose").text("This page documents the metadata for the " + dataItem.title + " API data feed.");
+    $("#entityName").html("<strong>" + dataItem.name + "</strong>");
+    $("#version").text(dataItem.version);
+    $("#description").html(dataItem.description.replace(/     /g, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;').replace(/\n/g, '<br />'));
+    $("#landingPage").html("<a href='" + dataItem.landingPage + "'>" + dataItem.landingPage + "</a>");
+    $("#webService").text(dataItem.webService);
+    $("#keyword").text(dataItem.keyword.length > 0 ? dataItem.keyword : "None provided");
+    $("#contact").html(dataItem.contactPoint + " - <a href='mailto:" + dataItem.mbox.trim() + "'>" + dataItem.mbox.trim() + "</a>");
+    $("#fullDataTable").html("");
+    if (dataItem.distribution) {
+        var distribution = JSON.parse(dataItem.distribution);
+        if (distribution.length > 0) {
+            $("#fullDataTable").append('<thead><tr><th scope="col">Format</th><th scope="col">Address</th></tr></thead>');
+            $("#fullDataTable").append('<tbody></tbody>');
+            for (var i = 0; i < distribution.length; i++) {
+                if (i % 2 !== 0) {
+                    $("#fullDataTable > tbody").append('<tr><td>' + distribution[i].format + '</td><td><a href="' + distribution[i].accessURL + '">' + distribution[i].accessURL + '</a></td></tr>');
+                }
+                else {
+                    $("#fullDataTable > tbody").append('<tr class="odd"><td>' + distribution[i].format + '</td><td><a href="' + distribution[i].accessURL + '">' + distribution[i].accessURL + '</a></td></tr>');
+                }
+            }
+        } else {
+            $("#fullDataTable").append('<thead><tr><th scope="col">Format</th><th scope="col">Address</th></tr></thead>');
+            $("#fullDataTable").append('<tbody></tbody>');
+            $("#fullDataTable > tbody").append('<tr><td>N/A</td><td>There are no full download links for this data set.</td></tr>');
+        }
+    }
+}
+
+</script>
+</body>
+</html>
