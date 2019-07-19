@@ -170,7 +170,8 @@ var dataSetFieldsDS = new kendo.data.DataSource({
                 title: { type: "string" },
                 description: { type: "string" },
                 type: { type: "string" },
-                sortOrder: { type: "number" }
+                sortOrder: { type: "number" },
+                datasetId: { type: "string" }
             }
         },
         data: "DataSetFields",
@@ -199,14 +200,14 @@ $(document).ready(function () {
     });
 
     function onChange() {
-        dataSetFieldsDS.filter({ field: 'identifier', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.filter({ field: 'datasetId', operator: "eq", value: $("#dataset").val() });
         buildDoc($("#dataset").data("kendoDropDownList").dataItem());
     }
 
     function onCascade() {
         $("#fieldsTable").html("");
         buildDoc($("#dataset").data("kendoDropDownList").dataItem());
-        dataSetFieldsDS.filter({ field: 'identifier', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.filter({ field: 'datasetId', operator: "eq", value: $("#dataset").val() });
         dataSetFieldsDS.read();
         dropDown.unbind("dataBound", onCascade);
         dropDown.bind("change", onChange);
