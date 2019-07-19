@@ -50,7 +50,7 @@
 
 <div style='padding-bottom: 10px;'>
     Select the Data Set you would like to view documentation for:
-    <input id="dataset" style="width: 400px;"/>
+    <input id="dataset" style="width: 600px;"/>
     <br/>
     <br/>
 
@@ -118,7 +118,8 @@ var dataSetDS = new kendo.data.DataSource({
                 accessLevel: { type: "string" },
                 landingPage: { type: "string" },
                 temporal: { type: "string" },
-                version: { type: "string"}
+                version: { type: "string"},
+                identifier: {type: "string"}
             }
         },
         data: "DataSets",
@@ -190,7 +191,7 @@ $(document).ready(function () {
     //create DropDownList from input HTML element
     dropDown = $("#dataset").kendoDropDownList({
         dataTextField: "title",
-        dataValueField: "name",
+        dataValueField: "identifier",
         dataSource: dataSetDS,
         index: 0,
         dataBound: onCascade,
@@ -198,14 +199,14 @@ $(document).ready(function () {
     });
 
     function onChange() {
-        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.filter({ field: 'identifier', operator: "eq", value: $("#dataset").val() });
         buildDoc($("#dataset").data("kendoDropDownList").dataItem());
     }
 
     function onCascade() {
         $("#fieldsTable").html("");
         buildDoc($("#dataset").data("kendoDropDownList").dataItem());
-        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.filter({ field: 'identifier', operator: "eq", value: $("#dataset").val() });
         dataSetFieldsDS.read();
         dropDown.unbind("dataBound", onCascade);
         dropDown.bind("change", onChange);
