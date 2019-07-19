@@ -196,7 +196,8 @@ $(document).ready(function () {
         dataSource: dataSetDS,
         index: 0,
         dataBound: onCascade,
-        template: '<span class=k-state-default>#: data.name# -V#: data.version #</span>'
+        template: '<span class=k-state-default>#: data.name# -V#: data.version #</span>',
+        valueTemplate: '<span class=k-state-default>#: data.name# -V#: data.version #</span>'
     });
 
     function onChange() {
