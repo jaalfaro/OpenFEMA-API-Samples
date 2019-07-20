@@ -103,7 +103,7 @@ var dataSetFieldsDS = new kendo.data.DataSource({
     sort: { field: "sortOrder", dir: "asc" },
     change: function (e) {
         if (this.data().length > 0) {
-            buildGrid($("#dataset").val());
+            buildGrid($("#dataset").data("kendoDropDownList").dataItem().openFemaDataSet);
         }
     },
     schema: {
