@@ -75,7 +75,8 @@ var dataSetDS = new kendo.data.DataSource({
                 MetaDataUrl: { type: "string" },
                 SampleUrl: { type: "string" },
                 LastUpdated: { type: "date" },
-                version: {type: "number"}
+                version: {type: "number"},
+                identifier: {type: "string"}
             }
         },
         data: "DataSets",
@@ -115,7 +116,8 @@ var dataSetFieldsDS = new kendo.data.DataSource({
                 description: { type: "string" },
                 type: { type: "string" },
                 sortOrder: { type: "number"},
-                datasetVersion: {type: "number"}
+                datasetVersion: {type: "number"},
+                datasetId: { type: "string" }
             }
         },
         data: "OpenFemaDataSetFields",
@@ -136,11 +138,12 @@ $(document).ready(function () {
     //create DropDownList from input HTML element
     dropDown = $("#dataset").kendoDropDownList({
         dataTextField: "name",
-        dataValueField: "name",
+        dataValueField: "identifier",
         dataSource: dataSetDS,
         index: 0,
         dataBound: onCascade,
-        template: '<span class=k-state-default>#: data.name# -V#: data.version #</span>'
+        template: '<span class=k-state-default>#: data.name# -V#: data.version #</span>',
+        valueTemplate: '<span class=k-state-default>#: data.name# -V#: data.version #</span>'
     });
 
     function onChange() {
@@ -150,14 +153,14 @@ $(document).ready(function () {
             grid.destroy();
             grid.wrapper.empty();
         }
-        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.filter({ field: 'datasetId', operator: "eq", value: $("#dataset").val() });
         //dataSetFieldsDS.sort({ field: "sortOrder", dir: "asc" });
         //dataSetFieldsDS.read();
         //buildGrid($("#dataset").val());
     }
 
     function onCascade() {
-        dataSetFieldsDS.filter({ field: 'openFemaDataSet', operator: "eq", value: $("#dataset").val() });
+        dataSetFieldsDS.filter({ field: 'datasetId', operator: "eq", value: $("#dataset").val() });
         //dataSetFieldsDS.sort({ field: "sortOrder", dir: "asc" });
         //dataSetFieldsDS.read();
         dropDown.unbind("dataBound", onCascade);
