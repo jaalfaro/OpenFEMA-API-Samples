@@ -28,8 +28,8 @@
     <div id="grid" style="height: 500px;"></div>
 </div>
 <script>
-var baseUrl = "http://www.fema.gov/api/open/v1/";
-baseUrl = "http://ec2-18-223-105-176.us-east-2.compute.amazonaws.com:8000/api/open/v1/";
+var baseUrl = "http://www.fema.gov/api/open/";
+baseUrl = "http://ec2-18-223-105-176.us-east-2.compute.amazonaws.com:8000/api/open/";
 var dataType = "json";
 $("#filetype").kendoDropDownList({
     dataTextField: "text",
@@ -46,7 +46,7 @@ var fileType = $("#filetype").data("kendoDropDownList");
 
 
 $("#get").click(function () {
-    var url = baseUrl + $("#dataset").val() + '.' + fileType.text().toLowerCase();
+    var url = baseUrl + "/" + $("#dataset").data("kendoDropDownList").dataItem().version + "/" + $("#dataset").val() + '.' + fileType.text().toLowerCase();
     window.open(url, 'Download');
 });
 
@@ -54,7 +54,7 @@ var dataSetDS = new kendo.data.DataSource({
     type: "odata",
     transport: {
         read: {
-            url: baseUrl + 'DataSets',
+            url: baseUrl + "/v1/" + 'DataSets',
             dataType: dataType
         }
     },
@@ -95,7 +95,7 @@ var dataSetFieldsDS = new kendo.data.DataSource({
     type: "odata",
     transport: {
         read: {
-            url: baseUrl + 'OpenFemaDataSetFields',
+            url: baseUrl + "/v1/" + 'DataSetFields',
             dataType: dataType,
             cache: true
         }
@@ -103,7 +103,7 @@ var dataSetFieldsDS = new kendo.data.DataSource({
     sort: { field: "sortOrder", dir: "asc" },
     change: function (e) {
         if (this.data().length > 0) {
-            buildGrid($("#dataset").data("kendoDropDownList").dataItem().openFemaDataSet);
+            buildGrid($("#dataset").data("kendoDropDownList").dataItem());
         }
     },
     schema: {
@@ -191,7 +191,7 @@ function buildGrid(dataset) {
             type: "odata",
             transport: {
                 read: {
-                    url: baseUrl + dataset,
+                    url: baseUrl + "/" + $("#dataset").data("kendoDropDownList").dataItem().version + "/" + dataset.name,
                     dataType: dataType,
                     cache: true
                 }
@@ -199,7 +199,7 @@ function buildGrid(dataset) {
             schema: {
                 id: "_id",
                 model: model,
-                data: dataset,
+                data: dataset.name,
                 total: function (response) {
                     return response.metadata.count;
                 },
