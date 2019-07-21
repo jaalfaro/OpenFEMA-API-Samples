@@ -46,7 +46,7 @@ var fileType = $("#filetype").data("kendoDropDownList");
 
 
 $("#get").click(function () {
-    var url = baseUrl + "/" + $("#dataset").data("kendoDropDownList").dataItem().version + "/" + $("#dataset").val() + '.' + fileType.text().toLowerCase();
+    var url = baseUrl + $("#dataset").data("kendoDropDownList").dataItem().version + "/" + $("#dataset").val() + '.' + fileType.text().toLowerCase();
     window.open(url, 'Download');
 });
 
@@ -54,7 +54,7 @@ var dataSetDS = new kendo.data.DataSource({
     type: "odata",
     transport: {
         read: {
-            url: baseUrl + "/v1/" + 'DataSets',
+            url: baseUrl + "v1/" + 'DataSets',
             dataType: dataType
         }
     },
@@ -95,7 +95,7 @@ var dataSetFieldsDS = new kendo.data.DataSource({
     type: "odata",
     transport: {
         read: {
-            url: baseUrl + "/v1/" + 'DataSetFields',
+            url: baseUrl + "v1/" + 'DataSetFields',
             dataType: dataType,
             cache: true
         }
@@ -191,7 +191,7 @@ function buildGrid(dataset) {
             type: "odata",
             transport: {
                 read: {
-                    url: baseUrl + "/" + $("#dataset").data("kendoDropDownList").dataItem().version + "/" + dataset.name,
+                    url: baseUrl + $("#dataset").data("kendoDropDownList").dataItem().version + "/" + dataset.name,
                     dataType: dataType,
                     cache: true
                 }
