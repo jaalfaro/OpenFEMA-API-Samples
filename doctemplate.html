@@ -82,6 +82,7 @@
     var baseUrl = "http://www.fema.gov/api/open/v1/";
     // var baseUrl = "/api/open/v1/";
     baseUrl = "http://ec2-18-223-105-176.us-east-2.compute.amazonaws.com:8000/api/open/v1/";
+    // baseUrl = "http://localhost:8000/api/open/v1/"
 var dataType = "json";
 var fileType = $("#filetype").data("kendoDropDownList");
 $("#get").click(function () {
@@ -97,7 +98,7 @@ var dataSetDS = new kendo.data.DataSource({
             dataType: dataType
         }
     },
-    sort: [{field: "title", dir: "asc"},
+    sort: [{field: "name", dir: "asc"},
         {field: "version", dir: "asc"}
     ],
     schema: {
@@ -155,9 +156,9 @@ var dataSetFieldsDS = new kendo.data.DataSource({
     },
     sort: { field: "sortOrder", dir: "asc" },
     change: function (e) {
-        if (this.data().length > 0) {
+        // if (this.data().length > 0) {
             buildFieldsTable($("#dataset").data("kendoDropDownList").dataItem());
-        }
+        // }
     },
     sort: { field: 'sortOrder', dir: 'asc'},
     schema: {
