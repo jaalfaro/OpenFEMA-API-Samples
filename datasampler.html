@@ -174,14 +174,17 @@ function buildGrid(dataset) {
         var schemaFields = {};
         var columns = [];
         for (var i = 0; i < fieldsData.length; i++) {
-            schemaFields[fieldsData[i].name] = { type: fieldsData[i].type};
-            var column = {
-                field: fieldsData[i].name,
-                title: fieldsData[i].title};
-            if (fieldsData[i].Type == 'date') {
-                column.format = '{0:MM/dd/yyyy}';
+            if (["string", "date", "number", "boolean"].includes(fieldsData[i].type) && fieldsData[i].name.indexOf('.') === -1) {
+                schemaFields[fieldsData[i].name] = {type: fieldsData[i].type};
+                var column = {
+                    field: fieldsData[i].name,
+                    title: fieldsData[i].title
+                };
+                if (fieldsData[i].type == 'date') {
+                    column.format = '{0:MM/dd/yyyy}';
+                }
+                columns.push(column);
             }
-            columns.push(column);
         }
         var model = { fields: schemaFields  };
     }
